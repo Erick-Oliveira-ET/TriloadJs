@@ -1,4 +1,4 @@
-const { prefix, mineserver } = require('../config.json');
+const { prefix, mineserver } = require('../config/config.json');
 const puppeteer = require('puppeteer');
 
 
