@@ -7,10 +7,11 @@ module.exports = {
     aliases: ["mineServer"],
 	description: "Open Tera's Minecraft server",
     args: true,
-    usage: '<start>, <close> or <restart>',
+    usage: '<start or open>, <stop or close> or <restart>',
     execute(message, args) {
         
-        if (['start', 'close', 'restart'].includes(args[0])) {
+        //Confirm if the arg is valid
+        if (['start', 'open', 'stop', 'close', 'restart'].includes(args[0])) {
             //Login the site to give access to the server. Because all three options
             //Have to login, the bot login before confirm the option
             (async () => {
@@ -27,12 +28,14 @@ module.exports = {
 
                 let serverRunning;
 
-                
+                //wait for page finish load to click on the div
                 await Promise.all([ 
                     await loginPage.waitForNavigation(),
                     await loginPage.click('body > div > main > section > div.page-content.page-servers > div.servers.single > div > div.server-body')
                 ])
 
+                //Tries to find the mesage "Desconectado". If succeed serverRunning = false
+                //If not just finish the promise without doing anything
                 await loginPage
                     .waitForSelector('#nope > main > section > div.page-content.page-server > div.server-status > div.status.offline > div > span.statuslabel-label-container > span', {visible: true, timeout: 5000})
                     .then((async () => {            
@@ -41,7 +44,9 @@ module.exports = {
                         if(disconnected.includes('Desconectado'))
                             serverRunning = false;
                     })).catch(() => {})
-                
+
+                //Tries to find the mesage "Conectado". If succeed serverRunning = true
+                //If not just finish the promise without doing anything
                 if (serverRunning !== false) {
                     await loginPage
                         .waitForSelector('#nope > main > section > div.page-content.page-server > div.server-status > div.status.online > div > span.statuslabel-label-container > span', {visible: true, timeout: 1500})
@@ -54,7 +59,7 @@ module.exports = {
                     
                 }
                 
-                if (args[0] === 'start') {
+                if (args[0] === 'start' || args[0] === 'open') {
                     if (serverRunning === false) {
                         /*
                         The function waitForSelector to be visible doesn´t work because when the 
@@ -68,6 +73,7 @@ module.exports = {
                         */
                         
                         setTimeout(async () => {
+                            //Wait for button start appear and click on it
                             await loginPage
                                 .waitForSelector('#start', {visible: true})
                                 .then(async () => {
@@ -75,6 +81,7 @@ module.exports = {
                                 })
                                 .catch(() => {message.channel.send("Falha no processo! [1/1]");})
                                 
+                            //Wait for close modal button appear and click on it
                             await loginPage
                                 .waitForSelector('#nope > main > div > div > div > main > div > a.btn.btn-red', {visible: true})
                                 .then((async () => {
@@ -87,7 +94,7 @@ module.exports = {
                             + "É possível acompanhar o tempo restante no status do server no minecraft.");
                             
                             //Waits for confirm button appear to click it. 
-                            //Timeout: 0 set the waitForSelector() to wait indefinitely
+                            //"Timeout: 0" set the waitForSelector() to wait indefinitely
                             await loginPage
                                 .waitForSelector('#confirm', {visible: true, timeout: 0})
                                 .then((async () => { 
@@ -97,18 +104,24 @@ module.exports = {
                                 }))
                                 .catch(() => {message.channel.send("Falha no processo! [1/3]");})
                             
+                            //Close the browser
                             await browser.close();
                         }, 1000);
                         
                     } else {
+                        //If serverRunning is different then false, notify the user
                         message.channel.send("Servidor já está aberto ou entre processos!!!");
+                        
+                        //Close the browser
                         await browser.close();
                     }
                     
                     
-                } else if (args[0] === 'close') {
+                } else if (args[0] === 'close' || args[0] === 'stop') {
                     if (serverRunning === true) {
+                        //The need for the "setTimeOut()" is explained on the "if" "start" 
                         setTimeout(async () => {
+                            //Search and wait the stop button appear, click on it and notify the user
                             await loginPage
                                 .waitForSelector('#stop', {visible: true})
                                 .then((async () => { 
@@ -119,18 +132,24 @@ module.exports = {
                                 }))
                                 .catch((e) => {message.channel.send("Falha no processo! [2/1]");})
                             
+                            //Close the browser
                             await browser.close();
                         }, 1000);
                         
                     } else {
+                        //If serverRunning is false, notify user
                         message.channel.send("Servidor já está fechado ou entre processos!!!");
+                        
+                        //Close the browser
                         await browser.close();
                     }
         
                 
                 } else if (args[0] === 'restart') {
                     if (serverRunning === true) {
+                        //Search and wait the stop button appear, click on it and notify the user
                         setTimeout(async () => {
+                            //Search and wait the restart button appear and click it
                             await loginPage
                                 .waitForSelector('#restart', {visible: true})
                                 .then((async () => { 
@@ -139,12 +158,16 @@ module.exports = {
                                 }))
                                 .catch(() => {message.channel.send("Falha no processo! [3/1]");})
                             
+                            //Close the browser
                             await browser.close();
 
                         }, 1000);
                         
                 } else {
+                    //If serverRunning is false, notify user
                     message.channel.send("Não há como reiniciar o servidor pois o mesmo está fechado ou entre processos.");
+                    
+                    //Close the browser
                     await browser.close();
                 }
                     
@@ -155,10 +178,11 @@ module.exports = {
 
 
             
-        } else { 
+        } else {
+            //If the arg doesn't match any of the valid words, notify the user which keywords work 
             message.channel.send("Argumento inválido! \n" + 
-            `Arguementos válidos são: \n1- ${prefix}mineServer start\n`+
-            `2- ${prefix}mineServer close\n` + `3- ${prefix}mineServer restart`);
+            `Arguementos válidos são: \n1- ${prefix}mineServer start ou ${prefix}mineServer open\n`+
+            `2- ${prefix}mineServer stop or ${prefix}mineServer close\n` + `3- ${prefix}mineServer restart`);
         }
 
 
