@@ -1,4 +1,4 @@
-const { prefix } = require('../config.json');
+const { prefix, mineserver } = require('../config.json');
 const puppeteer = require('puppeteer');
 
 
@@ -15,12 +15,14 @@ module.exports = {
             //Have to login, the bot login before confirm the option
             (async () => {
                 //Try to open server directly but get hold on login middleware and then log in
+                //and notify the user
+                message.channel.send("Processo iniciado. Pode demorar alguns instantes.")
                 const browser = await puppeteer.launch({headless: false});
                 const loginPage = await browser.newPage();
                 await loginPage.goto('https://aternos.org/server/');
                 await loginPage.screenshot({path: 'example.png'});
-                await loginPage.type('#user','TeraGeneral');
-                await loginPage.type('#password', '3J8&R@!hZ9b,:-!');
+                await loginPage.type('#user',mineserver.user);
+                await loginPage.type('#password', mineserver.password);
                 await loginPage.click('#login');
 
                 let serverRunning;
@@ -38,8 +40,7 @@ module.exports = {
                         
                         if(disconnected.includes('Desconectado'))
                             serverRunning = false;
-                            console.log("Entrou no if de desconectado " + serverRunning);
-                    })).catch(() => {console.log("Esperou por muito tempo em desconectado e nao achou nada")})
+                    })).catch(() => {})
                 
                 if (serverRunning !== false) {
                     await loginPage
@@ -48,14 +49,12 @@ module.exports = {
                             const connected = await loginPage.$eval('#nope > main > section > div.page-content.page-server > div.server-status > div.status.online > div > span.statuslabel-label-container > span', el => el.textContent).catch(()=>{})
                             if(connected.includes('Conectado')){
                                 serverRunning = true;
-                                console.log("Entrou no if de conectado " + serverRunning);
                             }
-                        })).catch(() => {console.log("Esperou muito por conectado e não achou nada")})
+                        })).catch(() => {})
                     
                 }
                 
                 if (args[0] === 'start') {
-                    console.log("Entrou no if de start " + serverRunning)
                     if (serverRunning === false) {
                         /*
                         The function waitForSelector to be visible doesn´t work because when the 
@@ -74,14 +73,14 @@ module.exports = {
                                 .then(async () => {
                                     await loginPage.click('#start');
                                 })
-                                .catch(() => {console.log("Não clicou no botão de start");})
+                                .catch(() => {message.channel.send("Falha no processo! [1/1]");})
                                 
                             await loginPage
                                 .waitForSelector('#nope > main > div > div > div > main > div > a.btn.btn-red', {visible: true})
                                 .then((async () => {
                                     await loginPage.click('#nope > main > div > div > div > main > div > a.btn.btn-red'); 
                                 }))
-                                .catch(() => {console.log("Não fechou o modal");})
+                                .catch(() => {message.channel.send("Falha no processo! [1/2]");})
                                 
                             //After the countdown start, notify the user
                             message.channel.send("O server irá abrir em, no mínimo, 5 minutos.\n"
@@ -96,10 +95,10 @@ module.exports = {
                                     message.channel.send("O server está abrindo. Falta pelo menos 2 min.\n" + 
                                     "Se ninguém entrar em 3 min após abrir, o server será encerrado!!!");
                                 }))
-                                .catch(() => {console.log("Não confirmou a abertura do server");})
+                                .catch(() => {message.channel.send("Falha no processo! [1/3]");})
                             
                             await browser.close();
-                        }, 1000)
+                        }, 1000);
                         
                     } else {
                         message.channel.send("Servidor já está aberto ou entre processos!!!");
@@ -118,7 +117,7 @@ module.exports = {
                                     serverRunning = false;
                                 
                                 }))
-                                .catch((e) => {console.log("Não confirmou o fechamento do server\n" + e);})
+                                .catch((e) => {message.channel.send("Falha no processo! [2/1]");})
                             
                             await browser.close();
                         }, 1000);
@@ -138,7 +137,7 @@ module.exports = {
                                     await loginPage.click('#restart');
                                     message.channel.send("O servidor está reiniciando.");
                                 }))
-                                .catch(() => {console.log("Não confirmou o reiniciamento do server");})
+                                .catch(() => {message.channel.send("Falha no processo! [3/1]");})
                             
                             await browser.close();
 
