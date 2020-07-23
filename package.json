@@ -12,7 +12,8 @@
     "libsodium-wrappers": "^0.7.6",
     "opusscript": "0.0.7",
     "puppeteer": "^5.2.0",
-    "ytdl-core-discord": "^1.2.1"
+    "ytdl-core-discord": "^1.2.1",
+    "ytsr": "^0.1.18"
   },
   "devDependencies": {},
   "scripts": {
