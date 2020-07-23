@@ -4,8 +4,15 @@
   "description": "Discord bot",
   "main": "index.js",
   "dependencies": {
+    "@discordjs/opus": "^0.3.2",
     "discord.js": "^12.2.0",
-    "puppeteer": "^5.2.0"
+    "ffmpeg": "0.0.4",
+    "ffmpeg-static": "^4.2.6",
+    "googleapis": "^55.0.0",
+    "libsodium-wrappers": "^0.7.6",
+    "opusscript": "0.0.7",
+    "puppeteer": "^5.2.0",
+    "ytdl-core-discord": "^1.2.1"
   },
   "devDependencies": {},
   "scripts": {
