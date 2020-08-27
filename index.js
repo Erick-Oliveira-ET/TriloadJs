@@ -13,6 +13,10 @@ for (const file of commandFiles) {
 	client.commands.set(command.name, command);
 }
 
+client.once('ready', () => {
+    console.log('Ready!');
+});
+
 client.on('message', message => {
     if (!message.content.startsWith(prefix) || message.author.bot) return;
 
@@ -22,9 +26,9 @@ client.on('message', message => {
 
     const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
     let reply;
-	if (!command) return;
+    if (!command) return;
+    
     if (command.args && !args.length) {
-    	
 		if (command.usage) {
             reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
         }
